@@ -20,8 +20,11 @@ type RecoverResponse struct {
 	Otp         string `json:"otp"`
 }
 
+type AuthExtension struct {
+}
+
 // GenerateOtp generates a random n digit otp
-func GenerateOtp(digits int) (string, error) {
+func generateOtp(digits int) (string, error) {
 	upper := math.Pow10(digits)
 	val, err := rand.Int(rand.Reader, big.NewInt(int64(upper)))
 	if err != nil {
@@ -33,18 +36,18 @@ func GenerateOtp(digits int) (string, error) {
 	return otp, nil
 }
 
-func GenerateTokenHash(emailOrPhone, otp string) string {
+func generateTokenHash(emailOrPhone, otp string) string {
 	return fmt.Sprintf("%x", sha256.Sum224([]byte(emailOrPhone+otp)))
 }
 
-func Recover(ctx context.Context, email string, referrerURL string) (*RecoverResponse, error) {
-	otp, err := GenerateOtp(6)
+func (auth *AuthExtension) Recover(ctx context.Context, email string, referrerURL string) (*RecoverResponse, error) {
+	otp, err := generateOtp(6)
 	if err != nil {
 		RecoverLogger.Error("error generate otp", "err", err)
 		return nil, err
 	}
 
-	token := GenerateTokenHash(email, otp)
+	token := generateTokenHash(email, otp)
 	return &RecoverResponse{
 		AccessToken: token,
 		TokenType:   "recovery",
