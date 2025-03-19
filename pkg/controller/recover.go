@@ -3,7 +3,7 @@ package controller
 import (
 	"fmt"
 
-	"github.com/sev-2/raiden/examples/raiden-auth-module/pkg/auth"
+	"github.com/mprambadi/raiden-auth-module/pkg/auth"
 
 	"github.com/sev-2/raiden"
 )

@@ -1,9 +1,9 @@
 package module
 
 import (
+	"github.com/mprambadi/raiden-auth-module/pkg/auth"
+	"github.com/mprambadi/raiden-auth-module/pkg/controller"
 	"github.com/sev-2/raiden"
-	"github.com/sev-2/raiden/examples/raiden-auth-module/pkg/auth"
-	"github.com/sev-2/raiden/examples/raiden-auth-module/pkg/controller"
 	"github.com/valyala/fasthttp"
 )
 
