@@ -1,4 +1,4 @@
-package mailer
+package auth
 
 import (
 	"net/url"

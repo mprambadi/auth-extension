@@ -1,16 +1,28 @@
 package auth
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
 	"math"
 	"math/big"
+	"net/url"
 	"strconv"
 
+	"github.com/sev-2/raiden"
 	"github.com/sev-2/raiden/pkg/logger"
 )
+
+func NewLibrary(config *raiden.Config) any {
+	return &AuthExtension{
+		config: config,
+	}
+}
+
+type AuthExtension struct {
+	raiden.BaseLibrary
+	config *raiden.Config
+}
 
 var RecoverLogger = logger.HcLog().Named("recover")
 
@@ -18,9 +30,6 @@ type RecoverResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	Otp         string `json:"otp"`
-}
-
-type AuthExtension struct {
 }
 
 // GenerateOtp generates a random n digit otp
@@ -40,17 +49,41 @@ func generateTokenHash(emailOrPhone, otp string) string {
 	return fmt.Sprintf("%x", sha256.Sum224([]byte(emailOrPhone+otp)))
 }
 
-func (auth *AuthExtension) Recover(ctx context.Context, email string, referrerURL string) (*RecoverResponse, error) {
+func (auth *AuthExtension) Recover(email string, referrerURL string) error {
 	otp, err := generateOtp(6)
 	if err != nil {
 		RecoverLogger.Error("error generate otp", "err", err)
-		return nil, err
+		return err
 	}
 
-	token := generateTokenHash(email, otp)
-	return &RecoverResponse{
-		AccessToken: token,
-		TokenType:   "recovery",
-		Otp:         otp,
-	}, nil
+	user, err := GetUserByEmail(auth.config, email)
+	if err != nil {
+		RecoverLogger.Error("error get user", "err", err)
+		return err
+	}
+
+	token := generateTokenHash(user.Email, otp)
+
+	// send recovery mail
+	mailer := NewMailer(auth.config)
+
+	url, err := url.Parse(referrerURL)
+	if err != nil {
+		RecoverLogger.Error("error parse referrer url", "err", err)
+		return err
+	}
+
+	err = mailer.RecoveryMail(user.Email, token, otp, referrerURL, url)
+	if err != nil {
+		RecoverLogger.Error("error send recovery mail", "err", err)
+		return err
+	}
+
+	err = UpdateUserRecoveryToken(auth.config, email, token)
+	if err != nil {
+		RecoverLogger.Error("error update user recovery token", "err", err)
+		return err
+	}
+
+	return nil
 }
