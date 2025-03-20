@@ -34,7 +34,7 @@ const defaultRecoveryMail = `<h2>Reset password</h2>
 
 // RecoveryMail sends a password recovery mail
 func (m *TemplateMailer) RecoveryMail(email string, token string, otp, referrerURL string, externalURL *url.URL) error {
-	path, err := getPath("/verify", &EmailParams{
+	path, err := getPath("v1/verify", &EmailParams{
 		Token:      token,
 		Type:       "recovery",
 		RedirectTo: referrerURL,
@@ -55,17 +55,6 @@ func (m *TemplateMailer) RecoveryMail(email string, token string, otp, referrerU
 		"Reset Your Password",
 		"",
 		defaultRecoveryMail,
-		data,
-	)
-}
-
-// Send mail function
-func (m *TemplateMailer) Send(email, subject, body string, data map[string]interface{}) error {
-	return m.Mailer.Mail(
-		email,
-		subject,
-		"",
-		body,
 		data,
 	)
 }

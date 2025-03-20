@@ -14,7 +14,6 @@ var MailLogger = logger.HcLog().Named("mailer")
 
 type Mailer interface {
 	RecoveryMail(email, token, otp, referrerURL string, externalURL *url.URL) error
-	Send(email, subject, body string, data map[string]interface{}) error
 }
 
 type Config struct {
